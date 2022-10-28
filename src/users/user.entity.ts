@@ -1,4 +1,6 @@
+import { Exclude, Expose } from 'class-transformer';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsUserAlreadyExist } from './is-user-already-exists.validator';
 
 export class User {
   id: number;
@@ -9,6 +11,7 @@ export class User {
   @IsString({
     message: 'login is need to be a string',
   })
+  @IsUserAlreadyExist()
   login: string;
 
   @IsEmail({
@@ -19,11 +22,18 @@ export class User {
   @IsNotEmpty({
     message: 'password is required',
   })
+  @Exclude({
+    toPlainOnly: true,
+  })
   password: string;
 
   @IsNotEmpty({
-    message: 'fullName is required',
+    message: 'full_name is required',
+  })
+  @Expose({
+    name: 'full_name',
   })
   fullName: string;
+
   createdDate: Date;
 }

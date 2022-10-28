@@ -3,10 +3,15 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
+import { NestResponse } from 'src/core/http/nest-response';
+import { NestResponseBuilder } from 'src/core/http/nest-response-builder';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
 
@@ -18,6 +23,13 @@ export class UsersController {
   @Get(':login')
   public getUserByLogin(@Param('login') login: string): User {
     const user = this.service.searchByLogin(login);
+
+    if (!user) {
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'User not found',
+      });
+    }
 
     return user;
   }
@@ -33,9 +45,16 @@ export class UsersController {
   }
 
   @Post()
-  public create(@Body() user: User): User {
+  public create(@Body() user: User): NestResponse {
     const userCreated = this.service.create(user);
-    return userCreated;
+
+    return new NestResponseBuilder()
+      .withStatus(HttpStatus.CREATED)
+      .withHeaders({
+        Location: `/users/${userCreated.login}`,
+      })
+      .withBody(userCreated)
+      .build();
   }
 
   @Post(':login')
